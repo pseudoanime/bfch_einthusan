@@ -5,7 +5,7 @@ from chanutils import movie_title_year, series_season_episode
 from playitem import PlayItem, PlayItemList, MoreEpisodesAction
 
 _BASE_URL = "https://einthusan.tv"
-_SEARCH_URL = "http://kat.cr/json.php"
+_SEARCH_URL = "https://einthusan.tv/movie/results/?lang="
 
 _FEEDLIST = [
   {'title':'Malayalam', 'url': _BASE_URL + '/movie/results/?decade=2010&find=Decade&lang=malayalam'},
@@ -27,6 +27,9 @@ def feedlist():
 
 def feed(idx):
   doc = get_doc(_FEEDLIST[idx]['url'], proxy=True)
+  return _extract(doc)
+
+def _extract(doc):
   main = select_one(doc, 'section[id="UIMovieSummary"]')
   rtree = select_all(doc, 'li')
   results = PlayItemList()
@@ -45,5 +48,10 @@ def feed(idx):
   return results
 
 def search(q):
-  doc = get_doc(_SEARCH_URL, params = { 'q':q })
-  return _extract(doc)
+  q = q.replace(' ', '-')
+  lang = ["malayalam", "tamil", "hindi"]
+  results = PlayItemList()
+  for l in lang:
+	doc = get_doc(_SEARCH_URL + l + "&query=" + q, proxy=True)
+	results.merge(_extract(doc))
+  return results
